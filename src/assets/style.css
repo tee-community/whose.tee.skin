@@ -54,6 +54,10 @@ button {
     align-items: center;
 }
 
+.tee {
+    content-visibility: visible !important;
+}
+
 .variants .tee {
     font-size: 0.4px;
     margin-top: 4px;
