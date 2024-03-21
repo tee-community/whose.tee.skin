@@ -11,32 +11,43 @@
                 <div class="variants ma-n2">
                     <template v-for="(p, pIdx) in currentPersonalities">
                         <button v-bind="getButtonProps(pIdx)">
+                            <div class="tee" data-skin="https://skins.scrumplex.net/skin/default.png">
+                            </div>
                             {{ p.clientName }}
                         </button>
                     </template>
                 </div>
 
-                <div class="ma-2">{{ totalCorrectAnswers }} / {{ totalAnswers }}</div>
+                <div class="mt-4">
+                    <div class="ma-n2">
+                        <div class="ma-2 stats-badge stats-badge_correct">
+                            {{ totalCorrectAnswers }}
+                        </div>
+
+                        <div class="ma-2 stats-badge stats-badge_wrong">
+                            {{ totalAnswers - totalCorrectAnswers }}
+                        </div>
+                    </div>
+                </div>
             </div>
         </Transition>
 
+        <div v-bind:class="{
+            'container-next': true,
+            'container-next_visible': state === GameState.Answered
+        }">
+            <button class="button_next" v-on:click="handleNext">
+                Next
+            </button>
 
-
-        <Transition name="slide-fade">
-            <div v-if="state === GameState.Answered">
-                <button class="button_next">
-                    Next
-                </button>
-
-                <div class="text-caption">...or press SPACE</div>
-            </div>
-        </Transition>
+            <div class="text-caption">...or press SPACE</div>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { renderer } from 'tee-skin-renderer';
-import { ref, type ButtonHTMLAttributes } from 'vue';
+import { nextTick, ref, type ButtonHTMLAttributes } from 'vue';
 import axios from 'axios';
 import 'tee-skin-renderer/css';
 
@@ -114,6 +125,20 @@ const setTeeRandomPersonalityAsync = (personalities: ClientPersonality[]) => {
 };
 
 const setNewPersonalities = (callback: Function | undefined = undefined) => {
+    state.value = GameState.Loading;
+
+    document.querySelectorAll<renderer.TeeContainer>('.variants .tee.tee_initialized').forEach((container) => {
+        container.tee.addEventListener('tee:skin-loaded', (e) => {
+            if (e.detail.payload.success) {
+                e.detail.tee.useCustomColor = false;
+            }
+        }, {
+            once: true,
+        });
+
+        container.tee.skinUrl = getSkinUrlBySkinName('default');
+    });
+
     getRandomPersonalitiesAsync().then((personalities) => {
         setTeeRandomPersonalityAsync(personalities).then((personalityIndex) => {
             currentPersonalities.value = personalities;
@@ -127,10 +152,10 @@ const setNewPersonalities = (callback: Function | undefined = undefined) => {
             setNewPersonalities(callback);
         });
     });
-}
+};
 
 const handleClickAnswer = (personalityIndex: number) => {
-    if (state.value === GameState.Answered) {
+    if (state.value !== GameState.Loaded) {
         return;
     }
 
@@ -139,11 +164,32 @@ const handleClickAnswer = (personalityIndex: number) => {
 
     totalAnswers.value++;
     totalCorrectAnswers.value += +(currentPersonalityIdx.value === personalityIndex);
+
+    document.querySelectorAll<renderer.TeeContainer>('.variants .tee').forEach((container, index) => {
+        const tee = container.tee;
+        const personality = currentPersonalities.value[index];
+
+        tee.skinUrl = getSkinUrlBySkinName(personality.clientSkin);
+        tee.colorBody = personality.clientSkinColorBody;
+        tee.colorFeet = personality.clientSkinColorFeet;
+        tee.useCustomColor = personality.clientSkinColorBody !== 0 || personality.clientSkinColorFeet !== 0;
+    });
+};
+
+const handleNext = () => {
+    if (state.value !== GameState.Answered) {
+        return;
+    }
+
+    setNewPersonalities(() => {
+        answeredPersonalityIdx.value = null;
+    });
 };
 
 const getButtonProps = (personalityIndex: number): ButtonHTMLAttributes => {
     return {
         onClick: () => handleClickAnswer(personalityIndex),
+        disabled: state.value === GameState.Loading,
         class: {
             'ma-2': true,
             'button_correct': state.value === GameState.Answered
@@ -153,7 +199,7 @@ const getButtonProps = (personalityIndex: number): ButtonHTMLAttributes => {
                 && personalityIndex !== currentPersonalityIdx.value,
         },
     };
-}
+};
 
 renderer.createAsync({ skinUrl: 'https://skins.scrumplex.net/skin/default.png' }).then((container) => {
     teeContainer.value = container;
@@ -161,15 +207,34 @@ renderer.createAsync({ skinUrl: 'https://skins.scrumplex.net/skin/default.png' }
 
     setNewPersonalities(() => {
         loaded.value = true;
+        nextTick(() => {
+            renderer.initializeAsync();
+        });
     });
 });
 
 document.addEventListener('keydown', (e) => {
-    if (e.code === "Space") {
+    if (e.key === ' ') {
+        handleNext();
+    }
 
+    switch (e.key) {
+        case '1':
+            handleClickAnswer(0);
+            break;
+
+        case '2':
+            handleClickAnswer(1);
+            break;
+
+        case '3':
+            handleClickAnswer(2);
+            break;
+
+        case '4':
+            handleClickAnswer(3);
+            break;
     }
 });
 
 </script>
-
-<style scoped></style>

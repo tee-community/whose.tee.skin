@@ -26,6 +26,7 @@ a:hover {
 body {
     margin: 0;
     display: flex;
+    flex-direction: column;
     place-items: center;
     min-width: 320px;
     min-height: 100vh;
@@ -48,12 +49,43 @@ button {
     transition: all 0.25s ease-in;
     color: #ffffff;
     outline: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
 }
 
-button:hover {}
+.variants .tee {
+    font-size: 0.4px;
+    margin-top: 4px;
+    margin-right: 6px;
+}
+
+.stats-badge {
+    font-size: 11px;
+    font-weight: bold;
+    background-color: #ccc;
+    color: #000;
+    border-radius: 10px;
+    display: inline-block;
+    padding: 5px 10px;
+}
+
+.stats-badge_correct {
+    background-color: #14c941;
+    color: #fff;
+}
+
+.stats-badge_wrong {
+    background-color: #c92714;
+    color: #fff;
+}
 
 .text-caption {
     color: #444;
+}
+
+.mt-4 {
+    margin-top: 12px;
 }
 
 .ma-2 {
@@ -62,6 +94,26 @@ button:hover {}
 
 .ma-n2 {
     margin: -6px;
+}
+
+.container-next {
+    margin-top: 30px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.copyright {
+    padding: 6px;
+}
+
+.copyright a {
+    color: #839285;
+}
+
+.container-next.container-next_visible {
+    opacity: 1;
+    pointer-events: unset;
 }
 
 .slide-fade-enter-active {
@@ -83,6 +135,10 @@ button:hover {}
     margin: 0 auto;
     padding: 2rem;
     text-align: center;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 @media (prefers-color-scheme: lig1ht) {
@@ -113,4 +169,8 @@ button.button_wrong {
 button.button_next {
     background-color: #187991;
     text-transform: uppercase;
+}
+
+button[disabled] {
+    opacity: 0.3;
 }
