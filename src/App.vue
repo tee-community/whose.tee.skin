@@ -201,14 +201,23 @@ const getButtonProps = (personalityIndex: number): ButtonHTMLAttributes => {
     };
 };
 
-renderer.createAsync({ skinUrl: 'https://skins.scrumplex.net/skin/default.png' }).then((container) => {
+renderer.createAsync({
+    followMouse: true,
+    skinUrl: 'https://skins.scrumplex.net/skin/default.png',
+}).then((container) => {
     teeContainer.value = container;
     document.getElementById('tee-wrapper')!.appendChild(container);
 
     setNewPersonalities(() => {
         loaded.value = true;
         nextTick(() => {
-            renderer.initializeAsync();
+            renderer.initializeAsync().then(() => {
+                document
+                    .querySelectorAll<renderer.TeeContainer>('.variants .tee.tee_initialized')
+                    .forEach((container) => {
+                        container.tee.followMouse = true;
+                    });
+            });
         });
     });
 });
