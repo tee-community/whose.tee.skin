@@ -126,6 +126,7 @@ const setTeeRandomPersonalityAsync = (personalities: ClientPersonality[]) => {
 
 const setNewPersonalities = (callback: Function | undefined = undefined) => {
     state.value = GameState.Loading;
+    teeContainer.value!.tee.eyes = 'normal';
 
     document.querySelectorAll<renderer.TeeContainer>('.variants .tee.tee_initialized').forEach((container) => {
         container.tee.addEventListener('tee:skin-loaded', (e) => {
@@ -137,6 +138,7 @@ const setNewPersonalities = (callback: Function | undefined = undefined) => {
         });
 
         container.tee.skinUrl = getSkinUrlBySkinName('default');
+        container.tee.eyes = 'normal';
     });
 
     getRandomPersonalitiesAsync().then((personalities) => {
@@ -159,15 +161,33 @@ const handleClickAnswer = (personalityIndex: number) => {
         return;
     }
 
+    const isCorrectAnswer = currentPersonalityIdx.value === personalityIndex;
+
+    if (isCorrectAnswer) {
+        teeContainer.value!.tee.eyes = 'happy';
+    } else {
+        teeContainer.value!.tee.eyes = 'angry';
+    }
+
     state.value = GameState.Answered;
     answeredPersonalityIdx.value = personalityIndex;
 
     totalAnswers.value++;
-    totalCorrectAnswers.value += +(currentPersonalityIdx.value === personalityIndex);
+    totalCorrectAnswers.value += +isCorrectAnswer;
 
     document.querySelectorAll<renderer.TeeContainer>('.variants .tee').forEach((container, index) => {
         const tee = container.tee;
         const personality = currentPersonalities.value[index];
+
+        const isCorrectTee = index === currentPersonalityIdx.value;
+        const isWrongTee = index !== currentPersonalityIdx.value
+            && index === personalityIndex;
+
+        if (isCorrectAnswer && isCorrectTee) {
+            tee.eyes = 'happy';
+        } else {
+            tee.eyes = isCorrectTee ? 'angry' : isWrongTee ? 'happy' : 'normal';
+        }
 
         tee.skinUrl = getSkinUrlBySkinName(personality.clientSkin);
         tee.colorBody = personality.clientSkinColorBody;
